@@ -1,0 +1,1256 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import matplotlib as mpl\n",
+    "import matplotlib.pylab as plt\n",
+    "import seaborn as sns\n",
+    "import pandas as pd\n",
+    "import datetime\n",
+    "import numpy as np\n",
+    "% matplotlib inline\n",
+    "mpl.rcParams[\"font.size\"] = 20"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "pd.options.display.max_columns = 100"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<a id='eda'></a>\n",
+    "## Exploratory Data Analysis\n",
+    "\n",
+    "> **Tip**: Now that you've trimmed and cleaned your data, you're ready to move on to exploration. Compute statistics and create visualizations with the goal of addressing the research questions that you posed in the Introduction section. It is recommended that you be systematic with your approach. Look at one variable at a time, and then follow it up by looking at relationships between variables.\n",
+    "\n",
+    "### Research Question 1 (Replace this header name!)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "date_1 = datetime.datetime.now()\n",
+    "df = pd.read_csv('../Data/P2/tmdb-movies_Cleaning_4')\n",
+    "date_2 = datetime.datetime.now()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "read time  :  0:01:47.892190\n"
+     ]
+    }
+   ],
+   "source": [
+    "print('read time  : ',date_2 - date_1)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 165,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "\n",
+    "def  CountGenres(dfIn,title,fromHow):\n",
+    "    fig_size = (150,100)\n",
+    "    title_fontsize = 70\n",
+    "\n",
+    "    x_fontsize = 70\n",
+    "    xtick_labels_size = 50\n",
+    "\n",
+    "    y_fontsize = 50\n",
+    "    ytick_labels_size = 60\n",
+    "    \n",
+    "    legendFontSize = 50\n",
+    "    \n",
+    "    color = ['#9966CC',   # Amethyst\n",
+    "     '#964B00',  #Brown\n",
+    "     '#7FFFD4',  #Aquamarine\n",
+    "     '#007FFF', #Azure\n",
+    "     '#000000',  #Black \n",
+    "     '#800020', #Burgundy \n",
+    "     '#7FFF00', #Chartreuse green\n",
+    "     '#FF7F50', #Coral\n",
+    "     '#FFF700', #Lemon - \n",
+    "     '#FF0000', #RED\n",
+    "     '#29AB87', #Jungle green\n",
+    "     '#EDC9Af', #Desert sand\n",
+    "     '#702963'] #Byzantium\n",
+    "\n",
+    "\n",
+    "    fig, ax = plt.subplots(nrows=1,ncols=1,figsize= fig_size)  \n",
+    "    \n",
+    "    maxY = 0\n",
+    " \n",
+    "    \n",
+    "    for _ in [x for x in df.columns if 'genres' in x]: \n",
+    "        all___genres_movies= dfIn[dfIn[f'{_}'] == 1]\n",
+    "\n",
+    "        if(len(all___genres_movies) > 500):\n",
+    "            groupby_release_year = all___genres_movies.groupby('release_year') \n",
+    "            \n",
+    "\n",
+    "            year = groupby_release_year.sum().index\n",
+    "            movies_count = groupby_release_year.original_title.count().values \n",
+    "\n",
+    "            if maxY < max(movies_count):\n",
+    "                maxY = max(movies_count)\n",
+    "                \n",
+    "#             print(f'{_} count is : {len(all___genres_movies)}')\n",
+    "            ax.plot(year,movies_count, color=color.pop(), linewidth=2, label=f'{_}')\n",
+    "\n",
+    "    \n",
+    "    \n",
+    "    ax.set_title(f'Movies Genres Count from {title}',fontsize=title_fontsize)\n",
+    "    \n",
+    "    ax.set_xticks(list(range(year.min(),year.max(),2)))\n",
+    "    ax.set_xticklabels(list(range(year.min(),year.max(),2)),fontsize=xtick_labels_size) \n",
+    "    ax.set_xlabel('Year',fontsize=x_fontsize)\n",
+    "    \n",
+    "     \n",
+    "    ax.set_yticks(list(range(0,maxY,5)))\n",
+    "    ax.set_yticklabels(list(range(0,maxY,5)),fontsize=ytick_labels_size)  \n",
+    "    ax.set_ylabel('Movies Count',fontsize=y_fontsize)\n",
+    "    plt.legend(fontsize=legendFontSize)\n",
+    "    \n",
+    "    plt.savefig(f'Ploting/CountGenres/{fromHow}/{Company}_genres_movies_count_for_each_year.png')\n",
+    "    print(\"*\"*5,\"CountGenres PLOTING Was Save Successfully Save \")\n",
+    "    print(\"*\"*5,f\"Ploting/CountGenres/{fromHow}/{Company}_genres_movies_count_for_each_year.png \")\n",
+    "    print()\n",
+    "#     plt.show() #bad visualisation please open this folder ../Ploting/Top10 creating movies\n",
+    "    plt.close()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 166,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def Top_and_worst_10(top_10In,worst_10In,Company,ByWichColumn,fromHow): \n",
+    "    mpl.rcParams[\"font.size\"] = 15\n",
+    "    fig, ax = plt.subplots(nrows=2,ncols=1,figsize= (40,20)) \n",
+    "\n",
+    "    my_range=range(1,len(top_10In.original_title.index)+1)\n",
+    "    y_data = top_10In[::-1].original_title.values\n",
+    "    x_data = top_10In[::-1][f'{ByWichColumn}'].values\n",
+    "\n",
+    "    ax[0].hlines(y=my_range, xmin=0, xmax=x_data, color='green' ) \n",
+    "    ax[0].plot(x_data, my_range, \"o\")\n",
+    "\n",
+    "    ax[0].set_yticks(list(range(1,len(y_data)+1)))\n",
+    "    ax[0].set_yticklabels( y_data,rotation=0)\n",
+    "\n",
+    "\n",
+    "    ax[0].set_title(f\"Top 10 Movies by {ByWichColumn} from {Company}\",fontsize=(25))\n",
+    "    ax[0].set_xlabel(f'{ByWichColumn}',fontsize=(25))\n",
+    "    ax[0].set_ylabel('Movies name')\n",
+    "\n",
+    "\n",
+    "    my_range=range(1,len(worst_10In.original_title.index)+1)\n",
+    "    y_data = worst_10In[::-1].original_title.values\n",
+    "    x_data = worst_10In[::-1][f'{ByWichColumn}'].values\n",
+    "\n",
+    "    ax[1].hlines(y=my_range, xmin=0, xmax=x_data, color='red' ) \n",
+    "    ax[1].plot(x_data, my_range, \"o\")\n",
+    "\n",
+    "    ax[1].set_yticks(list(range(1,len(y_data)+1)))\n",
+    "    ax[1].set_yticklabels( y_data,rotation=0)\n",
+    "\n",
+    "    ax[1].set_title(f\"Worst 10 Movies by {ByWichColumn} from {Company}\",fontsize=(25))\n",
+    "    ax[1].set_xlabel(f'{ByWichColumn}',fontsize=(25))\n",
+    "    ax[1].set_ylabel('Movies name')\n",
+    "\n",
+    "\n",
+    "    plt.savefig(f'Ploting/Top_and_worst_10/{ByWichColumn}/{fromHow}/{Company}.png')\n",
+    "    print(\"*\"*5,f\"Top_and_worst_10 by {ByWichColumn} PLOTING Was Save Successfully Save \")\n",
+    "    print(\"*\"*5,f\"Ploting/Top_and_worst_10/{ByWichColumn}/{fromHow}/{Company}.png\")\n",
+    "    print()\n",
+    "#     plt.show() \n",
+    "    plt.close()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 167,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def Revenue_and_Budget(revenueIn,budgetIn,yearIn,Company,fromHow):\n",
+    "    # font size \n",
+    "    mpl.rcParams[\"font.size\"] = 60   \n",
+    "\n",
+    "    #  starting with empty page \n",
+    "    fig, ax = plt.subplots(nrows=1,ncols=1,figsize= (80,40)) \n",
+    "\n",
+    "    # bar Width\n",
+    "    barWidth = 0.3\n",
+    "\n",
+    "    # varibal to use when call  revenueIn , budgetIn\n",
+    "    number = -15\n",
+    "\n",
+    "    # bar_1_data\n",
+    "    bar_1_data = revenueIn[number:]\n",
+    "    # bar_2_data \n",
+    "    bar_2_data = budgetIn[number:] \n",
+    "    \n",
+    "    # y data \n",
+    "    y_data = yearIn[number:]\n",
+    "    \n",
+    "    # bars position\n",
+    "    bar_1_pos = np.arange(len(bar_1_data))\n",
+    "    bar_2_pos = [x + barWidth for x in bar_1_pos]\n",
+    "\n",
+    "    #  draw bar 1\n",
+    "    ax.bar(bar_1_pos,            # الموقع \n",
+    "           bar_1_data,     # بيانات للجانب اليسار  (y)\n",
+    "           width = barWidth,     #  عرض البار \n",
+    "           color = 'green',      # لون البار\n",
+    "           edgecolor = 'black',  # لون حدود البار\n",
+    "           yerr=y_data,   # بيانات الجانب السفلي (x)\n",
+    "           label='revenue')      # اسم البار ليتم عرضه بالليجند \n",
+    "\n",
+    "    #  draw bar 2\n",
+    "    ax.bar(bar_2_pos,bar_2_data,width = barWidth,color = 'black',edgecolor = 'black',yerr=y_data,label='budget')\n",
+    "\n",
+    "    # bar legend\n",
+    "    ax.legend()\n",
+    "\n",
+    "    #  remove y axis scale\n",
+    "    ax.set_yticklabels(ax.get_yticks())  \n",
+    "\n",
+    "    #  x ticks count\n",
+    "    ax.set_xticks([r + barWidth for r in range(len(y_data))])\n",
+    "\n",
+    "    #  x ticks label\n",
+    "    ax.set_xticklabels( y_data,rotation=80)\n",
+    "\n",
+    "    #  y label\n",
+    "    ax.set_ylabel('Total in Dolar ',fontsize=60)\n",
+    "\n",
+    "    #  title \n",
+    "    ax.set_title(f'Sum of Revenue and Budget for all moveis in 2001 - 2015 from  {Company}',fontsize=70)\n",
+    "\n",
+    "    # save and Show graphic\n",
+    "    plt.savefig(f'Ploting/Revenue_and_Budget/{fromHow}/{Company}.png')\n",
+    "    print(\"*\"*5,f\"Revenue_and_Budget  PLOTING Was Save Successfully Save \")\n",
+    "    print(\"*\"*5,f\"Ploting/Revenue_and_Budget/{fromHow}/{Company}.png\")\n",
+    "    print()\n",
+    "#     plt.show()\n",
+    "    plt.close()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 168,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def genres_movies(genres_movies_count,genres_Names,Compnay,fromHow):\n",
+    "    mpl.rcParams[\"font.size\"] = 15   \n",
+    "    fig , ax = plt.subplots(nrows=1,ncols=1,figsize= (20,10))\n",
+    "\n",
+    "    ax.set_title(f'Count for genres Moveis from {Compnay}',fontsize=20)\n",
+    "    ax.set_xlabel('Moveis Count',fontsize=15)\n",
+    "\n",
+    "    # ax.bar()\n",
+    "    sns.barplot(genres_movies_count,genres_Names,ax=ax)\n",
+    "\n",
+    "    plt.savefig(f'Ploting/genres_movies/{fromHow}/{Company}.png')\n",
+    "    print(\"*\"*5,f\"genres_movies  PLOTING Was Save Successfully Save \")\n",
+    "    print(\"*\"*5,f\"Ploting/genres_movies/{fromHow}/{Company}.png\")\n",
+    "    print()\n",
+    "#     plt.show()\n",
+    "    plt.close()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Prepare the data to use it in ploting  ( with all movies ) \n",
+    "**this for all company**"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 169,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# how many movies for each genres\n",
+    "all_genres_movies_count = df[[x for x in df.columns if \"genres\" in x]].sum().sort_values(ascending=False)\n",
+    "\n",
+    "# just remove _genres from the name\n",
+    "genres_Names = [x.replace('_genres','') for x in all_genres_movies_count.index]\n",
+    "\n",
+    "#  get top 10 by runtime \n",
+    "top_10_runtime = df.sort_values('runtime',ascending=False)[:10]\n",
+    "\n",
+    "#  get worst 10 by runtime \n",
+    "worst_10_runtime = df.query('runtime != 0').sort_values('runtime',ascending=True)[:10]\n",
+    "\n",
+    "# get top 10 by vote average\n",
+    "top_10_vote_average = df.query('vote_count > 1000').sort_values('vote_average',ascending=False)[:10]\n",
+    "\n",
+    "# get worst 10 by vote average\n",
+    "worst_10_vote_average = df.query('vote_count != 0').sort_values('vote_average',ascending=True)[:10]\n",
+    "\n",
+    "# groupby release year\n",
+    "groupby_release_year = df.groupby('release_year')\n",
+    "\n",
+    "# get all year \n",
+    "year = groupby_release_year.sum().index\n",
+    "\n",
+    "# get sum of all budget on every year\n",
+    "budget = groupby_release_year['budget'].sum().values\n",
+    "\n",
+    "# get sum of all revenue on every year\n",
+    "revenue = groupby_release_year['revenue'].sum().values"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# plot the data"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 171,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "*************** Start  plot for ALL movies ***************\n",
+      "***** Top_and_worst_10 by runtime PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/runtime/ALL/ALL movies.png\n",
+      "\n",
+      "***** Top_and_worst_10 by vote_average PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/vote_average/ALL/ALL movies.png\n",
+      "\n",
+      "***** Revenue_and_Budget  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Revenue_and_Budget/ALL/ALL movies.png\n",
+      "\n",
+      "***** genres_movies  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/genres_movies/ALL/ALL movies.png\n",
+      "\n",
+      "***** CountGenres PLOTING Was Save Successfully Save \n",
+      "***** Ploting/CountGenres/ALL/ALL movies_genres_movies_count_for_each_year.png \n",
+      "\n",
+      "*************** End  plot for ALL movies ***************\n"
+     ]
+    }
+   ],
+   "source": [
+    "Company = \"ALL movies\"\n",
+    "print('*'*15,f'Start  plot for {Company}','*'*15)\n",
+    "Top_and_worst_10(top_10In=top_10_runtime,worst_10In=worst_10_runtime,Company=Company,ByWichColumn='runtime',fromHow='ALL')\n",
+    "Top_and_worst_10(top_10In=top_10_vote_average,worst_10In=worst_10_vote_average,Company=Company,ByWichColumn='vote_average',fromHow='ALL')\n",
+    "Revenue_and_Budget(revenueIn=revenue,budgetIn=budget,yearIn=year,Company=Company,fromHow='ALL')\n",
+    "genres_movies(genres_movies_count=all_genres_movies_count.values,genres_Names=genres_Names,Compnay=Company,fromHow='ALL')\n",
+    "CountGenres(df,title=Company,fromHow='ALL')\n",
+    "print('*'*15,f'End  plot for {Company}','*'*15)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Get top 10 production company ( with production_companies )  \n",
+    "**plot was save in (Ploting/Top10 creating movies/Top10 in creating movies by Production companies.png)**"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 172,
+   "metadata": {
+    "scrolled": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "***** Top10 in creating movies by Production companies PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top10 creating movies/Top10 in creating movies by Production companies.png\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "# all_production_companies_movies_count \n",
+    "\n",
+    "fig_size = (150,70)\n",
+    "title_fontsize = 70\n",
+    "\n",
+    "x_fontsize = 70\n",
+    "xtick_labels_size = 50\n",
+    "\n",
+    "y_fontsize = 50\n",
+    "ytick_labels_size = 60\n",
+    "\n",
+    "\n",
+    "all_production_companies_movies_count = df[[x for x in df.columns if \"production_companies\" in x]].sum().sort_values(ascending=False)\n",
+    "Top10 = all_production_companies_movies_count[:10] \n",
+    "Top10_Names = [x.replace('_production_companies','') for x in Top10.index]\n",
+    "\n",
+    "\n",
+    "fig , ax = plt.subplots(nrows=1,ncols=1,figsize= fig_size)\n",
+    "ax.set_title('Top 10 Production companies in Create Moveis',fontsize=title_fontsize)\n",
+    "ax.set_xlabel('Moveis Count',fontsize=x_fontsize)\n",
+    "ax.set_yticklabels(Top10_Names,fontsize=ytick_labels_size)\n",
+    "\n",
+    "ax.set_xticks(list(range(0,Top10.values.max(),20)))\n",
+    "ax.set_xticklabels(list(range(0,Top10.values.max(),20)),fontsize=xtick_labels_size)\n",
+    "\n",
+    "sns.barplot(Top10.values,Top10_Names,ax=ax)\n",
+    "plt.savefig(f'Ploting/Top10 creating movies/Top10 in creating movies by Production companies.png')\n",
+    "print(\"*\"*5,f\"Top10 in creating movies by Production companies PLOTING Was Save Successfully Save \")\n",
+    "print(\"*\"*5,f\"Ploting/Top10 creating movies/Top10 in creating movies by Production companies.png\")\n",
+    "print()\n",
+    "# plt.show()  #bad visualisation please open this folder ../Ploting/Top10 creating movies\n",
+    "plt.close()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Get details for top 10 production company "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 205,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "['Woody Allen_director',\n",
+       " 'Clint Eastwood_director',\n",
+       " 'Steven Spielberg_director',\n",
+       " 'Martin Scorsese_director',\n",
+       " 'Ridley Scott_director',\n",
+       " 'Steven Soderbergh_director',\n",
+       " 'Ron Howard_director',\n",
+       " 'Joel Schumacher_director',\n",
+       " 'Brian De Palma_director',\n",
+       " 'Tim Burton_director']"
+      ]
+     },
+     "execution_count": 205,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "list(Top10.index)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 191,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "*************** Start  plot for Universal Pictures_production_companies ***************\n",
+      "***** Top_and_worst_10 by runtime PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/runtime/production company/Universal Pictures_production_companies.png\n",
+      "\n",
+      "***** Top_and_worst_10 by vote_average PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/vote_average/production company/Universal Pictures_production_companies.png\n",
+      "\n",
+      "***** Revenue_and_Budget  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Revenue_and_Budget/production company/Universal Pictures_production_companies.png\n",
+      "\n",
+      "***** genres_movies  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/genres_movies/production company/Universal Pictures_production_companies.png\n",
+      "\n",
+      "*************** End  plot for Universal Pictures_production_companies ***************\n",
+      "*************** Start  plot for Warner Bros._production_companies ***************\n",
+      "***** Top_and_worst_10 by runtime PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/runtime/production company/Warner Bros._production_companies.png\n",
+      "\n",
+      "***** Top_and_worst_10 by vote_average PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/vote_average/production company/Warner Bros._production_companies.png\n",
+      "\n",
+      "***** Revenue_and_Budget  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Revenue_and_Budget/production company/Warner Bros._production_companies.png\n",
+      "\n",
+      "***** genres_movies  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/genres_movies/production company/Warner Bros._production_companies.png\n",
+      "\n",
+      "*************** End  plot for Warner Bros._production_companies ***************\n",
+      "*************** Start  plot for Paramount Pictures_production_companies ***************\n",
+      "***** Top_and_worst_10 by runtime PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/runtime/production company/Paramount Pictures_production_companies.png\n",
+      "\n",
+      "***** Top_and_worst_10 by vote_average PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/vote_average/production company/Paramount Pictures_production_companies.png\n",
+      "\n",
+      "***** Revenue_and_Budget  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Revenue_and_Budget/production company/Paramount Pictures_production_companies.png\n",
+      "\n",
+      "***** genres_movies  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/genres_movies/production company/Paramount Pictures_production_companies.png\n",
+      "\n",
+      "*************** End  plot for Paramount Pictures_production_companies ***************\n",
+      "*************** Start  plot for Twentieth Century Fox Film Corporation_production_companies ***************\n",
+      "***** Top_and_worst_10 by runtime PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/runtime/production company/Twentieth Century Fox Film Corporation_production_companies.png\n",
+      "\n",
+      "***** Top_and_worst_10 by vote_average PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/vote_average/production company/Twentieth Century Fox Film Corporation_production_companies.png\n",
+      "\n",
+      "***** Revenue_and_Budget  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Revenue_and_Budget/production company/Twentieth Century Fox Film Corporation_production_companies.png\n",
+      "\n",
+      "***** genres_movies  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/genres_movies/production company/Twentieth Century Fox Film Corporation_production_companies.png\n",
+      "\n",
+      "*************** End  plot for Twentieth Century Fox Film Corporation_production_companies ***************\n",
+      "*************** Start  plot for Columbia Pictures_production_companies ***************\n",
+      "***** Top_and_worst_10 by runtime PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/runtime/production company/Columbia Pictures_production_companies.png\n",
+      "\n",
+      "***** Top_and_worst_10 by vote_average PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/vote_average/production company/Columbia Pictures_production_companies.png\n",
+      "\n",
+      "***** Revenue_and_Budget  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Revenue_and_Budget/production company/Columbia Pictures_production_companies.png\n",
+      "\n",
+      "***** genres_movies  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/genres_movies/production company/Columbia Pictures_production_companies.png\n",
+      "\n",
+      "*************** End  plot for Columbia Pictures_production_companies ***************\n",
+      "*************** Start  plot for New Line Cinema_production_companies ***************\n",
+      "***** Top_and_worst_10 by runtime PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/runtime/production company/New Line Cinema_production_companies.png\n",
+      "\n",
+      "***** Top_and_worst_10 by vote_average PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/vote_average/production company/New Line Cinema_production_companies.png\n",
+      "\n",
+      "***** Revenue_and_Budget  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Revenue_and_Budget/production company/New Line Cinema_production_companies.png\n",
+      "\n",
+      "***** genres_movies  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/genres_movies/production company/New Line Cinema_production_companies.png\n",
+      "\n",
+      "*************** End  plot for New Line Cinema_production_companies ***************\n",
+      "*************** Start  plot for Metro-Goldwyn-Mayer (MGM)_production_companies ***************\n",
+      "***** Top_and_worst_10 by runtime PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/runtime/production company/Metro-Goldwyn-Mayer (MGM)_production_companies.png\n",
+      "\n",
+      "***** Top_and_worst_10 by vote_average PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/vote_average/production company/Metro-Goldwyn-Mayer (MGM)_production_companies.png\n",
+      "\n",
+      "***** Revenue_and_Budget  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Revenue_and_Budget/production company/Metro-Goldwyn-Mayer (MGM)_production_companies.png\n",
+      "\n",
+      "***** genres_movies  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/genres_movies/production company/Metro-Goldwyn-Mayer (MGM)_production_companies.png\n",
+      "\n",
+      "*************** End  plot for Metro-Goldwyn-Mayer (MGM)_production_companies ***************\n",
+      "*************** Start  plot for Walt Disney Pictures_production_companies ***************\n",
+      "***** Top_and_worst_10 by runtime PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/runtime/production company/Walt Disney Pictures_production_companies.png\n",
+      "\n",
+      "***** Top_and_worst_10 by vote_average PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/vote_average/production company/Walt Disney Pictures_production_companies.png\n",
+      "\n",
+      "***** Revenue_and_Budget  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Revenue_and_Budget/production company/Walt Disney Pictures_production_companies.png\n",
+      "\n",
+      "***** genres_movies  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/genres_movies/production company/Walt Disney Pictures_production_companies.png\n",
+      "\n",
+      "*************** End  plot for Walt Disney Pictures_production_companies ***************\n",
+      "*************** Start  plot for Touchstone Pictures_production_companies ***************\n",
+      "***** Top_and_worst_10 by runtime PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/runtime/production company/Touchstone Pictures_production_companies.png\n",
+      "\n",
+      "***** Top_and_worst_10 by vote_average PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/vote_average/production company/Touchstone Pictures_production_companies.png\n",
+      "\n",
+      "***** Revenue_and_Budget  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Revenue_and_Budget/production company/Touchstone Pictures_production_companies.png\n",
+      "\n",
+      "***** genres_movies  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/genres_movies/production company/Touchstone Pictures_production_companies.png\n",
+      "\n",
+      "*************** End  plot for Touchstone Pictures_production_companies ***************\n",
+      "*************** Start  plot for Columbia Pictures Corporation_production_companies ***************\n",
+      "***** Top_and_worst_10 by runtime PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/runtime/production company/Columbia Pictures Corporation_production_companies.png\n",
+      "\n",
+      "***** Top_and_worst_10 by vote_average PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/vote_average/production company/Columbia Pictures Corporation_production_companies.png\n",
+      "\n",
+      "***** Revenue_and_Budget  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Revenue_and_Budget/production company/Columbia Pictures Corporation_production_companies.png\n",
+      "\n",
+      "***** genres_movies  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/genres_movies/production company/Columbia Pictures Corporation_production_companies.png\n",
+      "\n",
+      "*************** End  plot for Columbia Pictures Corporation_production_companies ***************\n"
+     ]
+    }
+   ],
+   "source": [
+    "for _ in Top10.index:\n",
+    "    \n",
+    "    tempMain = df[df[_] == 1]\n",
+    "\n",
+    "    # what is most genres Revenue_and_Budget from 2000 to  2020\n",
+    "    groupby_release_year = tempMain.groupby('release_year')\n",
+    "    year = groupby_release_year.sum().index\n",
+    "    budget = groupby_release_year['budget'].sum().values\n",
+    "    revenue = groupby_release_year['revenue'].sum().values\n",
+    "\n",
+    "    # what is most genres Top_and_worst_10_vote_average movies .?\n",
+    "    top_10_vote_average = tempMain.sort_values('vote_average',ascending=False)[:10]\n",
+    "    worst_10_vote_average = tempMain.sort_values('vote_average',ascending=True)[:10]\n",
+    "\n",
+    "    # what is most genres Top_and_worst_10_ movies .?\n",
+    "    top_10_runtime = tempMain.sort_values('runtime',ascending=False)[:10]\n",
+    "    worst_10_runtime = tempMain.sort_values('runtime',ascending=True)[:10]\n",
+    "\n",
+    "    # what is most genres .?\n",
+    "    all_genres_movies_count = tempMain[[x for x in tempMain.columns if \"genres\" in x]].sum().sort_values(ascending=False)\n",
+    "    genres_Names = [x.replace('_genres','') for x in all_genres_movies_count.index]\n",
+    "\n",
+    "    \n",
+    "    Company = _\n",
+    "    print('*'*15,f'Start  plot for {Company}','*'*15)\n",
+    "    Top_and_worst_10(top_10In=top_10_runtime,worst_10In=worst_10_runtime,Company=Company,ByWichColumn='runtime',fromHow='production company')\n",
+    "    Top_and_worst_10(top_10In=top_10_vote_average,worst_10In=worst_10_vote_average,Company=Company,ByWichColumn='vote_average',fromHow='production company')\n",
+    "    Revenue_and_Budget(revenueIn=revenue,budgetIn=budget,yearIn=year,Company=Company,fromHow='production company')\n",
+    "    genres_movies(genres_movies_count=all_genres_movies_count.values,genres_Names=genres_Names,Compnay=Company,fromHow='production company')\n",
+    "#     CountGenres(tempMain,title=Company)\n",
+    "    print('*'*15,f'End  plot for {Company}','*'*15)    "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Get top 10 director  in Create Moveis\n",
+    "**plot was save in (Ploting/Top10 creating movies/Top 10 director in Create Moveis.png)**"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 202,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "***** Top10 creating movies/Top 10 director in Create Moveis PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top10 creating movies/Top 10 director in Create Moveis.png\n"
+     ]
+    }
+   ],
+   "source": [
+    "all_director_movies_count = df[[x for x in df.columns if \"_director\" in x]].sum().sort_values(ascending=False)\n",
+    "Top10 = all_director_movies_count[:10]\n",
+    "Top10_Columns_Names = [x for x in Top10.index]\n",
+    "Top10_Names = [x.replace('_director','') for x in Top10.index]\n",
+    "\n",
+    "\n",
+    "fig , ax = plt.subplots(nrows=1,ncols=1,figsize= (15,10))\n",
+    "ax.set_title('Top 10 director in Create Moveis',fontsize=20)\n",
+    "ax.set_xlabel('Moveis Count',fontsize=15)\n",
+    "sns.barplot(Top10.values,Top10_Names,ax=ax) \n",
+    "plt.savefig(f'Ploting/Top10 creating movies/Top 10 director in Create Moveis.png')\n",
+    "print(\"*\"*5,f\"Top10 creating movies/Top 10 director in Create Moveis PLOTING Was Save Successfully Save \")\n",
+    "print(\"*\"*5,f\"Ploting/Top10 creating movies/Top 10 director in Create Moveis.png\") \n",
+    "# plt.show()\n",
+    "plt.close()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Get details for top 10 director"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 203,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "['Woody Allen_director',\n",
+       " 'Clint Eastwood_director',\n",
+       " 'Steven Spielberg_director',\n",
+       " 'Martin Scorsese_director',\n",
+       " 'Ridley Scott_director',\n",
+       " 'Steven Soderbergh_director',\n",
+       " 'Ron Howard_director',\n",
+       " 'Joel Schumacher_director',\n",
+       " 'Brian De Palma_director',\n",
+       " 'Tim Burton_director']"
+      ]
+     },
+     "execution_count": 203,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "list(Top10.index)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 195,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "*************** Start  plot for Woody Allen_director ***************\n",
+      "***** Top_and_worst_10 by runtime PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/runtime/director/Woody Allen_director.png\n",
+      "\n",
+      "***** Top_and_worst_10 by vote_average PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/vote_average/director/Woody Allen_director.png\n",
+      "\n",
+      "***** Revenue_and_Budget  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Revenue_and_Budget/director/Woody Allen_director.png\n",
+      "\n",
+      "***** genres_movies  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/genres_movies/director/Woody Allen_director.png\n",
+      "\n",
+      "*************** End  plot for Woody Allen_director ***************\n",
+      "*************** Start  plot for Clint Eastwood_director ***************\n",
+      "***** Top_and_worst_10 by runtime PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/runtime/director/Clint Eastwood_director.png\n",
+      "\n",
+      "***** Top_and_worst_10 by vote_average PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/vote_average/director/Clint Eastwood_director.png\n",
+      "\n",
+      "***** Revenue_and_Budget  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Revenue_and_Budget/director/Clint Eastwood_director.png\n",
+      "\n",
+      "***** genres_movies  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/genres_movies/director/Clint Eastwood_director.png\n",
+      "\n",
+      "*************** End  plot for Clint Eastwood_director ***************\n",
+      "*************** Start  plot for Steven Spielberg_director ***************\n",
+      "***** Top_and_worst_10 by runtime PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/runtime/director/Steven Spielberg_director.png\n",
+      "\n",
+      "***** Top_and_worst_10 by vote_average PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/vote_average/director/Steven Spielberg_director.png\n",
+      "\n",
+      "***** Revenue_and_Budget  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Revenue_and_Budget/director/Steven Spielberg_director.png\n",
+      "\n",
+      "***** genres_movies  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/genres_movies/director/Steven Spielberg_director.png\n",
+      "\n",
+      "*************** End  plot for Steven Spielberg_director ***************\n",
+      "*************** Start  plot for Martin Scorsese_director ***************\n",
+      "***** Top_and_worst_10 by runtime PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/runtime/director/Martin Scorsese_director.png\n",
+      "\n",
+      "***** Top_and_worst_10 by vote_average PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/vote_average/director/Martin Scorsese_director.png\n",
+      "\n",
+      "***** Revenue_and_Budget  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Revenue_and_Budget/director/Martin Scorsese_director.png\n",
+      "\n",
+      "***** genres_movies  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/genres_movies/director/Martin Scorsese_director.png\n",
+      "\n",
+      "*************** End  plot for Martin Scorsese_director ***************\n",
+      "*************** Start  plot for Ridley Scott_director ***************\n",
+      "***** Top_and_worst_10 by runtime PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/runtime/director/Ridley Scott_director.png\n",
+      "\n",
+      "***** Top_and_worst_10 by vote_average PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/vote_average/director/Ridley Scott_director.png\n",
+      "\n",
+      "***** Revenue_and_Budget  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Revenue_and_Budget/director/Ridley Scott_director.png\n",
+      "\n",
+      "***** genres_movies  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/genres_movies/director/Ridley Scott_director.png\n",
+      "\n",
+      "*************** End  plot for Ridley Scott_director ***************\n",
+      "*************** Start  plot for Steven Soderbergh_director ***************\n",
+      "***** Top_and_worst_10 by runtime PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/runtime/director/Steven Soderbergh_director.png\n",
+      "\n",
+      "***** Top_and_worst_10 by vote_average PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/vote_average/director/Steven Soderbergh_director.png\n",
+      "\n",
+      "***** Revenue_and_Budget  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Revenue_and_Budget/director/Steven Soderbergh_director.png\n",
+      "\n",
+      "***** genres_movies  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/genres_movies/director/Steven Soderbergh_director.png\n",
+      "\n",
+      "*************** End  plot for Steven Soderbergh_director ***************\n",
+      "*************** Start  plot for Ron Howard_director ***************\n",
+      "***** Top_and_worst_10 by runtime PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/runtime/director/Ron Howard_director.png\n",
+      "\n",
+      "***** Top_and_worst_10 by vote_average PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/vote_average/director/Ron Howard_director.png\n",
+      "\n",
+      "***** Revenue_and_Budget  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Revenue_and_Budget/director/Ron Howard_director.png\n",
+      "\n",
+      "***** genres_movies  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/genres_movies/director/Ron Howard_director.png\n",
+      "\n",
+      "*************** End  plot for Ron Howard_director ***************\n",
+      "*************** Start  plot for Joel Schumacher_director ***************\n",
+      "***** Top_and_worst_10 by runtime PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/runtime/director/Joel Schumacher_director.png\n",
+      "\n",
+      "***** Top_and_worst_10 by vote_average PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/vote_average/director/Joel Schumacher_director.png\n",
+      "\n",
+      "***** Revenue_and_Budget  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Revenue_and_Budget/director/Joel Schumacher_director.png\n",
+      "\n",
+      "***** genres_movies  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/genres_movies/director/Joel Schumacher_director.png\n",
+      "\n",
+      "*************** End  plot for Joel Schumacher_director ***************\n",
+      "*************** Start  plot for Brian De Palma_director ***************\n",
+      "***** Top_and_worst_10 by runtime PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/runtime/director/Brian De Palma_director.png\n",
+      "\n",
+      "***** Top_and_worst_10 by vote_average PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/vote_average/director/Brian De Palma_director.png\n",
+      "\n",
+      "***** Revenue_and_Budget  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Revenue_and_Budget/director/Brian De Palma_director.png\n",
+      "\n",
+      "***** genres_movies  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/genres_movies/director/Brian De Palma_director.png\n",
+      "\n",
+      "*************** End  plot for Brian De Palma_director ***************\n",
+      "*************** Start  plot for Tim Burton_director ***************\n",
+      "***** Top_and_worst_10 by runtime PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/runtime/director/Tim Burton_director.png\n",
+      "\n",
+      "***** Top_and_worst_10 by vote_average PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Top_and_worst_10/vote_average/director/Tim Burton_director.png\n",
+      "\n",
+      "***** Revenue_and_Budget  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/Revenue_and_Budget/director/Tim Burton_director.png\n",
+      "\n",
+      "***** genres_movies  PLOTING Was Save Successfully Save \n",
+      "***** Ploting/genres_movies/director/Tim Burton_director.png\n",
+      "\n",
+      "*************** End  plot for Tim Burton_director ***************\n"
+     ]
+    }
+   ],
+   "source": [
+    "for _ in Top10.index:\n",
+    "    \n",
+    "    tempMain = df[df[_] == 1]\n",
+    "\n",
+    "    # what is most genres Revenue_and_Budget from 2000 to  2020\n",
+    "    groupby_release_year = tempMain.groupby('release_year')\n",
+    "    year = groupby_release_year.sum().index\n",
+    "    budget = groupby_release_year['budget'].sum().values\n",
+    "    revenue = groupby_release_year['revenue'].sum().values\n",
+    "\n",
+    "    # what is most genres Top_and_worst_10_vote_average movies .?\n",
+    "    top_10_vote_average = tempMain.sort_values('vote_average',ascending=False)[:10]\n",
+    "    worst_10_vote_average = tempMain.sort_values('vote_average',ascending=True)[:10]\n",
+    "\n",
+    "    # what is most genres Top_and_worst_10_ movies .?\n",
+    "    top_10_runtime = tempMain.sort_values('runtime',ascending=False)[:10]\n",
+    "    worst_10_runtime = tempMain.sort_values('runtime',ascending=True)[:10]\n",
+    "\n",
+    "    # what is most genres .?\n",
+    "    all_genres_movies_count = tempMain[[x for x in tempMain.columns if \"genres\" in x]].sum().sort_values(ascending=False)\n",
+    "    genres_Names = [x.replace('_genres','') for x in all_genres_movies_count.index]\n",
+    "\n",
+    "    \n",
+    "    Company = _\n",
+    "    print('*'*15,f'Start  plot for {Company}','*'*15)\n",
+    "    Top_and_worst_10(top_10In=top_10_runtime,worst_10In=worst_10_runtime,Company=Company,ByWichColumn='runtime',fromHow='director')\n",
+    "    Top_and_worst_10(top_10In=top_10_vote_average,worst_10In=worst_10_vote_average,Company=Company,ByWichColumn='vote_average',fromHow='director')\n",
+    "    Revenue_and_Budget(revenueIn=revenue,budgetIn=budget,yearIn=year,Company=Company,fromHow='director')\n",
+    "    genres_movies(genres_movies_count=all_genres_movies_count.values,genres_Names=genres_Names,Compnay=Company,fromHow='director')\n",
+    "#     CountGenres(tempMain,title=Company)\n",
+    "    print('*'*15,f'End  plot for {Company}','*'*15) "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Get top 10 CAST  in Create Moveis\n",
+    "**plot was save in (Ploting/Top 10 cast in Create Moveis.png)**"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 198,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "image/png": "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\n",
+      "text/plain": [
+       "<Figure size 1080x720 with 1 Axes>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "all_cast_movies_count = df[[x for x in df.columns if \"_CAST\" in x]].sum().sort_values(ascending=False)\n",
+    "Top10 = all_cast_movies_count[:10]\n",
+    "Top10_Columns_Names = [x for x in Top10.index]\n",
+    "Top10_Names = [x.replace('_CAST','') for x in Top10.index]\n",
+    "\n",
+    "\n",
+    "fig , ax = plt.subplots(nrows=1,ncols=1,figsize= (15,10))\n",
+    "ax.set_title('Top 10 cast in Create Moveis',fontsize=20)\n",
+    "ax.set_xlabel('Moveis Count',fontsize=15)\n",
+    "sns.barplot(Top10.values,Top10_Names,ax=ax) \n",
+    "plt.savefig(f'Ploting/Top 10 cast in Create Moveis.png')\n",
+    "print(\"*\"*5,f\"Top 10 cast in Create Moveis PLOTING Was Save Successfully Save \")\n",
+    "print(\"*\"*5,f\"Ploting/Top 10 cast in Create Moveis.png'\")\n",
+    "# plt.show()\n",
+    "plt.close()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Get details for top 10 CAST"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 199,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "['Robert De Niro_CAST',\n",
+       " 'Samuel L. Jackson_CAST',\n",
+       " 'Bruce Willis_CAST',\n",
+       " 'Nicolas Cage_CAST',\n",
+       " 'Michael Caine_CAST',\n",
+       " 'Robin Williams_CAST',\n",
+       " 'Morgan Freeman_CAST',\n",
+       " 'John Cusack_CAST',\n",
+       " 'John Goodman_CAST',\n",
+       " 'Susan Sarandon_CAST']"
+      ]
+     },
+     "execution_count": 199,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "list(Top10.index)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Get top 10 genres  in Create Moveis\n",
+    "**plot was save in (Ploting/Top 10 genres Moveis Count.png)**"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 200,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "image/png": "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\n",
+      "text/plain": [
+       "<Figure size 1080x720 with 1 Axes>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "all_genres_companies_movies_count = df[[x for x in df.columns if \"genres\" in x]].sum().sort_values(ascending=False)\n",
+    "Top10 = all_genres_companies_movies_count[:10]\n",
+    "Top10_Columns_Names = [x for x in Top10.index]\n",
+    "Top10_Names = [x.replace('_genres','') for x in Top10.index]\n",
+    "\n",
+    "\n",
+    "fig , ax = plt.subplots(nrows=1,ncols=1,figsize= (15,10))\n",
+    "ax.set_title('Top 10 genres Moveis Count ',fontsize=20)\n",
+    "ax.set_xlabel('Moveis Count',fontsize=15)\n",
+    "sns.barplot(Top10.values,Top10_Names,ax=ax)\n",
+    "plt.savefig(f'Ploting/Top 10 genres Moveis Count.png')\n",
+    "print(\"*\"*5,f\"Top 10 cast in Create Moveis PLOTING Was Save Successfully Save \")\n",
+    "print(\"*\"*5,f\"Ploting/Top 10 genres Moveis Count.png\")\n",
+    "# plt.show()\n",
+    "plt.close()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Get details for top 10 genres "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 201,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "['Drama_genres',\n",
+       " 'Comedy_genres',\n",
+       " 'Thriller_genres',\n",
+       " 'Action_genres',\n",
+       " 'Romance_genres',\n",
+       " 'Horror_genres',\n",
+       " 'Adventure_genres',\n",
+       " 'Crime_genres',\n",
+       " 'Science Fiction_genres',\n",
+       " 'Family_genres']"
+      ]
+     },
+     "execution_count": 201,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "list(Top10.index)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<a id='conclusions'></a>\n",
+    "## Conclusions\n",
+    "\n",
+    "> **Tip**: Finally, summarize your findings and the results that have been performed. Make sure that you are clear with regards to the limitations of your exploration. If you haven't done any statistical tests, do not imply any statistical conclusions. And make sure you avoid implying causation from correlation!\n",
+    "\n",
+    "> **Tip**: Once you are satisfied with your work, you should save a copy of the report in HTML or PDF form via the **File** > **Download as** submenu. Before exporting your report, check over it to make sure that the flow of the report is complete. You should probably remove all of the \"Tip\" quotes like this one so that the presentation is as tidy as possible. Congratulations!"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.6.5"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
