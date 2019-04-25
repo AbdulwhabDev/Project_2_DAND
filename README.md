@@ -25,19 +25,22 @@ A - the most genres in creating moveis in 2015 is  <br />
 1- Drama  <br />
 2- ACtion <br />
 3- comedy <br />
-**( ALL movies_genres_movies_count_for_each_year.png ) if you want see all ploting ** <br />
+**( ALL movies_genres_movies_count_for_each_year.png ) if you want see all ploting ** <br /><br />
 
-B- best three moveis from director "Brian DePalma" based on. vote_avreage
-1-Scareface 
-2-The untochables
-3-Phantom of the Paradise
-**( Ploting/Top_and_worst_10/vote_average/director/Brian De Palma_director.png) if you want see all ploting **
+B- best three moveis from director "Brian DePalma" based on. vote_avreage<br />
+1-Scareface <br />
+2-The untochables<br />
+3-Phantom of the Paradise<br />
+**( Ploting/Top_and_worst_10/vote_average/director/Brian De Palma_director.png) if you want see all ploting **<br /><br />
 
-C- Most New Line Cinema_production geners is
-1 - Comedy
-2 - Drama 
-3 - Thriler
-**( Ploting/genres_movies/production company/New Line Cinema_production_companies.png ) if you want see all ploting **
+C- Most New Line Cinema_production geners is<br />
+1 - Comedy<br />
+2 - Drama <br />
+3 - Thriler<br />
+**( Ploting/genres_movies/production company/New Line Cinema_production_companies.png ) if you want see all ploting **<br />*<br />
+
+
+and you can see alot of Conclusions in the **ploting file** *<br />*<br />*<br />
 
 
 
