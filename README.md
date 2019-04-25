@@ -21,11 +21,11 @@
 
 
 
-A - the most genres in creating moveis in 2015 is 
-1- Drama 
-2- ACtion
-3- comedy
-**( ALL movies_genres_movies_count_for_each_year.png ) if you want see all ploting **
+A - the most genres in creating moveis in 2015 is  <br />
+1- Drama  <br />
+2- ACtion <br />
+3- comedy <br />
+**( ALL movies_genres_movies_count_for_each_year.png ) if you want see all ploting ** <br />
 
 B- best three moveis from director "Brian DePalma" based on. vote_avreage
 1-Scareface 
